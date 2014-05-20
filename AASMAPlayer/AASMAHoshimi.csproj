@@ -66,12 +66,17 @@
   <ItemGroup>
     <Compile Include="AASMAMessage.cs" />
     <Compile Include="AASMAPlayer.cs" />
-    <Compile Include="Examples\BuildingAI.cs" />
-    <Compile Include="Examples\CommunicativeExplorer.cs" />
-    <Compile Include="Examples\PassiveContainer.cs" />
-    <Compile Include="Examples\ForwardExplorer.cs" />
-    <Compile Include="Examples\PassiveNeedle.cs" />
-    <Compile Include="Examples\ShootingProtector.cs" />
+    <Compile Include="BDI\BDIAI.cs" />
+    <Compile Include="BDI\Knowledge\Beliefs.cs" />
+    <Compile Include="BDI\Knowledge\Desires.cs" />
+    <Compile Include="BDI\ReactiveBodyGuardProtector.cs" />
+    <Compile Include="Reactive\ReactiveAI.cs" />
+    <Compile Include="Reactive\ReactiveExplorer.cs" />
+    <Compile Include="Reactive\ReactiveBodyGuardProtector.cs" />
+    <Compile Include="Reactive\ReactiveSpawnProtector.cs" />
+    <Compile Include="Reactive\ReactiveContainer.cs" />
+    <Compile Include="Reactive\ReactiveNeedle.cs" />
+    <Compile Include="Reactive\ReactiveProtector.cs" />
     <Compile Include="IActionable.cs" />
     <Compile Include="ICommunicable.cs" />
     <Compile Include="NanoBots\AASMAAI.cs" />
@@ -108,6 +113,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Hybrid\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

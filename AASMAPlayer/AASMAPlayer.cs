@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Diagnostics;
 using PH.Common;
 using PH.Map;
-using AASMAHoshimi.Examples;
+using AASMAHoshimi.Reactive;
 
 namespace AASMAHoshimi
 {
@@ -41,7 +41,9 @@ namespace AASMAHoshimi
         public virtual AASMAAI buildAIAgent(NanoAI nanoAI)
         {
             //return new BuildingAI(nanoAI);
-            return new Examples.BuildingAI(nanoAI);
+            return new Reactive.ReactiveAI(nanoAI);
+            //return new BDI.BDIAI(nanoAI);
+            //return new Hybrid.AI(nanoAI);
         }
 
         #region AASMA_STUDENTS-DO_NOT_CHANGE_ANYTHING_HERE
