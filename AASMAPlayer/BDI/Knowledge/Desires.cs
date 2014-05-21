@@ -11,10 +11,14 @@ namespace AASMAHoshimi.BDI.Knowledge
     {
         Guard,       
         Sight,
+        MoveToHoshimi,
         BuildNeedle,
         BuildCollector,
+        BuildSoloExplorer,
         SecureSpawn,
-        GoToSafeLocation        
+        GoToSafeLocation,
+        Wander,
+        GoNavigationPoint
     };
 
 }

@@ -11,6 +11,7 @@ namespace AASMAHoshimi
     {
         private static Random _randomFactory = new Random();
 
+        public static int deliberationDelta = 10;
 
         public enum direction {North, NW, West, SW, South, SE, East, NE};
 
@@ -307,6 +308,7 @@ namespace AASMAHoshimi
         {
             return Utils._randomFactory.Next(0, maximum + 1);
         }
+    
 
     }
 }

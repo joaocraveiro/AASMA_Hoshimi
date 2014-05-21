@@ -13,10 +13,13 @@ namespace AASMAHoshimi.BDI.Knowledge
         SecurePosition,
         SecureGuard,
         SecureSight,
-        AvailableHoshimiAt,
+        AvailableHoshimi,
         AvailableNeedleAt,
         EnoughExploreEffort,
-        StorageAvailable
+        StorageAvailable,
+        //EXPLORER
+        Solo,
+        BodyGuard
     };
 
 }

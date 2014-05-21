@@ -67,10 +67,14 @@
     <Compile Include="AASMAMessage.cs" />
     <Compile Include="AASMAPlayer.cs" />
     <Compile Include="BDI\BDIAI.cs" />
+    <Compile Include="BDI\BDIBodyGuardExplorer.cs" />
+    <Compile Include="BDI\BDITeamExplorer.cs" />
+    <Compile Include="BDI\BDITeamProtector.cs" />
     <Compile Include="BDI\Knowledge\Beliefs.cs" />
     <Compile Include="BDI\Knowledge\Desires.cs" />
     <Compile Include="BDI\BDIBodyGuardProtector.cs" />
-    <Compile Include="BDI\BDIExplorer.cs" />
+    <Compile Include="BDI\BDISoloExplorer.cs" />
+    <Compile Include="BDI\BDINeedle.cs" />
     <Compile Include="Reactive\ReactiveAI.cs" />
     <Compile Include="Reactive\ReactiveExplorer.cs" />
     <Compile Include="Reactive\ReactiveBodyGuardProtector.cs" />
