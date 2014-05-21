@@ -41,8 +41,8 @@ namespace AASMAHoshimi
         public virtual AASMAAI buildAIAgent(NanoAI nanoAI)
         {
             //return new BuildingAI(nanoAI);
-            return new Reactive.ReactiveAI(nanoAI);
-            //return new BDI.BDIAI(nanoAI);
+            //return new Reactive.ReactiveAI(nanoAI);
+            return new BDI.BDIAI(nanoAI);
             //return new Hybrid.AI(nanoAI);
         }
 

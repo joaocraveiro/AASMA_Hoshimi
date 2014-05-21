@@ -9,13 +9,20 @@ namespace AASMAHoshimi.BDI
 {
     public class BDIAI : AASMAAI
     {
+        const int deliberationDelta = 10;
         const int SPAWNGUARDS = 2;
         const int FORMATIONDISTANCE = 4;
         const int AIBODYGUARDS = 4;
         const int AIEXPLORERS = 1;
 
-        Dictionary<BDI.Knowledge.Beliefs, List<int>> beliefs = new Dictionary<Knowledge.Beliefs, List<int>>();
+        List<BDI.Knowledge.Beliefs> beliefs = new List<Knowledge.Beliefs>();
         List<BDI.Knowledge.Desires> desires = new List<Knowledge.Desires>();
+        Stack<BDI.Knowledge.Desires> intentions = new Stack<Knowledge.Desires>();
+
+        List<Point> HoshimisAvailable = new List<Point>();
+        List<Point> AZNPoints = new List<Point>();
+
+        int deliberationWaitPeriods=0;
 
         public BDIAI(NanoAI nanoAI)
             : base(nanoAI)
@@ -26,20 +33,16 @@ namespace AASMAHoshimi.BDI
         # region BELIEFS
         private void updateBeliefs()
         {
-            // UPDATE BELIEFS: Percept + Belief = Belief
+            // UPDATE BELIEFS: Percept + Belief = Belief            
 
             //1. x protectors near spawn = safe spawn
-            if (countSpawnProtectors() >= 2) { beliefs[Knowledge.Beliefs.SafeSpawn] = new List<int> { 1 }; }
-            else { beliefs[Knowledge.Beliefs.SafeSpawn] = new List<int> { 0 }; }
+            if (countSpawnProtectors() >= 2) { beliefs.Add(Knowledge.Beliefs.SafeSpawn); }            
 
-            if (bodyGuardOK()) { beliefs[Knowledge.Beliefs.SecureGuard] = new List<int> { 1 }; }
-            else { beliefs[Knowledge.Beliefs.SecureGuard] = new List<int> { 0 }; }
+            if (bodyGuardOK()) { beliefs.Add(Knowledge.Beliefs.SecureGuard); }
 
-            if (bodySightOK()) { beliefs[Knowledge.Beliefs.SecureSight] = new List<int> { 1 }; }
-            else { beliefs[Knowledge.Beliefs.SecureSight] = new List<int> { 0 }; }
+            if (bodySightOK()) { beliefs.Add(Knowledge.Beliefs.SecureSight); }
 
-            if (getAASMAFramework().explorersAlive() > 5) { beliefs[Knowledge.Beliefs.EnoughExploreEffort] = new List<int> { 1 }; }
-            else { beliefs[Knowledge.Beliefs.EnoughExploreEffort] = new List<int> { 0 }; }
+            if (getAASMAFramework().explorersAlive() > 5) { beliefs.Add(Knowledge.Beliefs.EnoughExploreEffort); }             
 
         }
         #endregion
@@ -49,26 +52,30 @@ namespace AASMAHoshimi.BDI
         {
             desires.Clear();
             //   options -> Beliefs x Intentions = Desires            
-            if (beliefs[Knowledge.Beliefs.SecureGuard][0] == 1)
+            if (!beliefs.Contains(Knowledge.Beliefs.SecureGuard))
             {
                 desires.Add(Knowledge.Desires.Guard);
             }
-            if (beliefs[Knowledge.Beliefs.SecureSight][0] == 1)
+            if (!beliefs.Contains(Knowledge.Beliefs.SecureSight))
             {
                 desires.Add(Knowledge.Desires.Sight);
             }
-            if (beliefs[Knowledge.Beliefs.AvailableHoshimiAt].Count > 0)
+            if (HoshimisAvailable.Count > 0 && beliefs.Contains(Knowledge.Beliefs.SecureSight) && beliefs.Contains(Knowledge.Beliefs.SecureGuard))
             {
                 desires.Add(Knowledge.Desires.BuildNeedle);
             }
-            if (beliefs[Knowledge.Beliefs.AvailableNeedleAt].Count > 0)
+            if (getAASMAFramework().needlesAlive() > 0 && beliefs.Contains(Knowledge.Beliefs.SafeSpawn))
             {
                 desires.Add(Knowledge.Desires.BuildCollector);
             }
-            
-
-         
+                     
             //   filter -> Beliefs x Desires x Intentions = Intentions
+            if(desires.Contains(Knowledge.Desires.Guard)){
+                intentions.Push(Knowledge.Desires.Guard);
+            }
+            if(desires.Contains(Knowledge.Desires.Sight)){
+                intentions.Push(Knowledge.Desires.Sight);
+            }
 
 
         }
@@ -76,21 +83,46 @@ namespace AASMAHoshimi.BDI
 
         #region PLAN
         // REASONING:    Beliefs x Intentions x Actions = Plan
+        // In this simple case we use beliefs to sort the intentions list which will
+        // be executed by it's order.
         #endregion
 
         public override void DoActions()
         {
-            updateBeliefs();
+            // update beliefs and deliberate only each X rounds if AI still has intentions
+            if (intentions.Count == 0 || deliberationWaitPeriods > deliberationDelta)
+            {
+                getAASMAFramework().logData(this._nanoAI, "AI Deliberating...");
+                updateBeliefs();
+                deliberate();
+                deliberationWaitPeriods = 0;
+            }
+            else
+            {
+                deliberationWaitPeriods++;
+            }
 
-            deliberate();
+            // Execute intentions
+            if (intentions.Count > 0)
+            {
+                Knowledge.Desires intent = intentions.Pop();
 
+                if (intent.Equals(Knowledge.Desires.Guard))
+                {
+                    this._nanoAI.Build(typeof(BDIBodyGuardProtector), "P" + this._protectorNumber++);
+                }
+                if (intent.Equals(Knowledge.Desires.Sight))
+                {
+                    this._nanoAI.Build(typeof(BDIExplorer), "E" + this._explorerNumber++);
+                }
+            }
 
         }
 
         public override void receiveMessage(AASMAMessage msg)
         {
             // MESSAGES ARE TREATED AS BELIEFS UPDATES
-            //message about hoshimi = hoshimi
+            // message about hoshimi = hoshimi
 
 
             //message about hoshimi unavailable = remove hoshimi
@@ -128,10 +160,14 @@ namespace AASMAHoshimi.BDI
         private bool bodyGuardOK()
         {            
             int count = 0;
-            foreach (NanoDefender defender in getAASMAFramework().NanoBots)
+            foreach (NanoBot defender in getAASMAFramework().NanoBots)
             {
-                if (Utils.SquareDistance(getAASMAFramework().AI.Location, defender.Location) < FORMATIONDISTANCE){
-                    count++;
+                if (defender.GetType() == typeof(BDIBodyGuardProtector))
+                {
+                    if (Utils.SquareDistance(getAASMAFramework().AI.Location, defender.Location) < FORMATIONDISTANCE)
+                    {
+                        count++;
+                    }
                 }
             }
             if (count >= AIBODYGUARDS) { return true; }
@@ -141,11 +177,14 @@ namespace AASMAHoshimi.BDI
         private bool bodySightOK()
         {
             int count = 0;
-            foreach (NanoExplorer explorer in getAASMAFramework().NanoBots)
+            foreach (NanoBot explorer in getAASMAFramework().NanoBots)
             {
-                if (Utils.SquareDistance(getAASMAFramework().AI.Location, explorer.Location) < FORMATIONDISTANCE)
+                if (explorer.GetType() == typeof(BDIExplorer))
                 {
-                    count++;
+                    if (Utils.SquareDistance(getAASMAFramework().AI.Location, explorer.Location) < FORMATIONDISTANCE)
+                    {
+                        count++;
+                    }
                 }
             }
             if (count >= AIEXPLORERS) { return true; }
